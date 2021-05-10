@@ -1,0 +1,15 @@
+image: python:latest
+pages:
+  stage: deploy
+  only:
+    - master
+  script:
+    - python -m pip install -U pip
+    - python -m pip install discord.py
+    - python -m pip install os
+    - python -m pip install sqlite3
+    - python -m pip install random
+    - python main.py
+  artifacts:
+    paths:
+      - public
