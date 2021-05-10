@@ -2,10 +2,10 @@ import sqlite3
 
 class ModulesDB:
     
-    def __init__(self):
+    def __init__(self, liste_modules):
         self.database = sqlite3.connect("modules.db")
         self.__create_table__()
-        self.liste_modules = ["level"]
+        self.liste_modules = liste_modules
         
     def __create_table__(self):
         curseur = self.database.cursor()
@@ -13,6 +13,12 @@ class ModulesDB:
         curseur.close()
         self.database.commit()
         
+    def __add_module__(self, nom_module):
+        curseur = self.database.cursor()
+        curseur.execute(f"ALTER TABLE modules ADD {nom_module} TINYINT NOT NULL DEFAULT 0")
+        curseur.close()
+        self.database.commit()    
+    
     def __est_dans_la_table__(self, guilde):
         curseur = self.database.cursor()
         curseur.execute("SELECT * FROM modules WHERE guild_id = ?", (guilde.id,))
@@ -37,9 +43,10 @@ class ModulesDB:
             curseur.execute("SELECT * FROM modules WHERE guild_id = ?", (guilde.id,))
             résultat = curseur.fetchone()
             curseur.close()
+            résultat_sans_id_guilde = [résultat[i] for i in range(1, len(résultat))]
             return {
                 nom_module: bool(status)
-                for nom_module, status in zip(self.liste_modules, list(résultat))
+                for nom_module, status in zip(self.liste_modules, résultat_sans_id_guilde)
             }
         
     def get_module_status(self, guilde, nom_module):

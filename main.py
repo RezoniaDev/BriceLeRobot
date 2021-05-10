@@ -20,8 +20,11 @@ def get_server_prefix(client, message):
 
 client = cmds.Bot(command_prefix=get_server_prefix)
 
+client.liste_modules = ["level"]
+client.dico_nom_modules_jolis = {"level": "Niveaux"}
+
 client.prefix_db = PrefixDB()
-client.modules_db = ModulesDB()
+client.modules_db = ModulesDB(client.liste_modules)
 client.level_db = LevelDB()
 
 @client.event
