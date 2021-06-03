@@ -3,3 +3,5 @@
 *.log
 *.csv
 *.env
+*.cpython-39.pyc
+*.vscode
