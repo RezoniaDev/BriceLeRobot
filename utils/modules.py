@@ -3,7 +3,7 @@ import sqlite3
 class ModulesDB:
     
     def __init__(self, liste_modules):
-        self.database = sqlite3.connect("modules.db")
+        self.database = sqlite3.connect(".\données\modules.db")
         self.__create_table__()
         self.liste_modules = liste_modules
         

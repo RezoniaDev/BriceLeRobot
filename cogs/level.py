@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+from discord_components import Button, ButtonStyle, component
 from random import randint
 
 
@@ -35,7 +36,7 @@ def retourne_carré(xp, level):
         a+= "⬜"
     return a +f" **( {int(ratio*100)} % )**"
 
-class Level(commands.Cog):
+class Level(commands.Cog, name="Niveaux"):
     
     def __init__(self, client):
         self.client = client
@@ -92,6 +93,7 @@ class Level(commands.Cog):
         name="leaderboard"
     )    
     async def _leaderboard(self, ctx):
+        
         if not self.client.modules_db.get_module_status(ctx.guild, "level"):
             await ctx.send("Le module **Niveau** n'est pas activé !")
             return
@@ -107,10 +109,9 @@ class Level(commands.Cog):
         
         embed = discord.Embed(title=f"Tableau de bord ({len(level)}) :", colour=discord.Colour(0xF5DF4D), description=description)
         embed.set_footer(text=f"Veni, vidi, vici | {self.client.user.name}", icon_url=self.client.user.avatar_url)
-
-        await ctx.send(embed=embed)
         
         
 def setup(client):
     client.add_cog(Level(client))
     print("Le cog Niveau est prêt !")
+    

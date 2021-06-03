@@ -3,7 +3,7 @@ import sqlite3
 class PrefixDB:
     
     def __init__(self):
-        self.database = sqlite3.connect("prefix.db")
+        self.database = sqlite3.connect(".\données\prefix.db")
         self.__create_table__()
         
     def __create_table__(self):

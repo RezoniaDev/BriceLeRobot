@@ -9,6 +9,13 @@ class Prefix(commands.Cog, name="Préfixe"):
         self.prefix = client.prefix_db       
     
     @commands.command(
+        name="test"
+    )
+    async def _test(self, ctx):
+        self.client.modules_db.__add_module__("log")
+        await ctx.send("TEST OK !")
+            
+    @commands.command(
         name="prefix"
     )
     async def _prefix(self, ctx):

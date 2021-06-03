@@ -3,7 +3,7 @@ import sqlite3
 class LevelDB:
     
     def __init__(self):
-        self.database = sqlite3.connect("level.db")
+        self.database = sqlite3.connect(".\données\level.db")
         
     def __create_table__(self, id_guilde):
         curseur = self.database.cursor()

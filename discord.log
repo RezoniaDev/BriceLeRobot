@@ -1,0 +1,5 @@
+2021-06-03 13:38:08,741:DEBUG:discord.client: on_ready has successfully been registered as an event
+2021-06-03 13:38:08,741:DEBUG:discord.client: on_message has successfully been registered as an event
+2021-06-03 13:38:08,741:INFO:discord.client: logging in using static token
+2021-06-03 13:38:09,042:DEBUG:discord.http: GET https://discord.com/api/v7/users/@me with None has returned 200
+2021-06-03 13:38:09,042:DEBUG:discord.http: GET https://discord.com/api/v7/users/@me has received {'id': '725434157798260777', 'username': 'Quentin le Robot', 'avatar': '37a2bc0b4b1fca48dd6202a69f538c82', 'discriminator': '0369', 'public_flags': 0, 'flags': 0, 'bot': True, 'locale': 'en-US', 'mfa_enabled': True, 'email': None, 'verified': True}
