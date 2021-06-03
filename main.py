@@ -1,9 +1,8 @@
 import os
 import logging
-
+from dotenv import load_dotenv
 import discord_components
 from utils.logs import LogDB
-
 import discord
 from utils.modules import ModulesDB
 from utils.level import LevelDB
@@ -18,6 +17,10 @@ logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename="discord.log", encoding="utf-8", mode="w")
 handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
 logger.addHandler(handler)
+
+load_dotenv()
+
+token = os.getenv("TOKEN")
 
 directory = get_path()
 
@@ -49,7 +52,7 @@ client.log_db = LogDB()
 async def on_ready():
     print(f"{client.user.name} est prêt !")
     load_cogs()
-    client.id_auteur = 528157130432315403
+    client.id_auteur = os.getenv("OWNER_ID")
     client.auteur = client.get_user(client.id_auteur)
     
 @client.event
@@ -59,7 +62,7 @@ async def on_message(message):
 
     await client.process_commands(message)
 
-client.run("NzI1NDM0MTU3Nzk4MjYwNzc3.XvOrNQ.J47KiLxA5NHosMl5nJTHSeHBNf4")
+client.run(token)
 
 
     
