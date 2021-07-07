@@ -91,7 +91,7 @@ class Level(commands.Cog, name="Niveau"):
         
         if est_activé(self.setup_bdd, ctx.guild):
             rang_utilisateurs = self.niveau_bdd.retourne_liste_rangs(ctx.guild)
-            expérience, niveau = self.niveau_bdd.get_user_informations(ctx.guild, ctx.author)
+            expérience, niveau = self.niveau_bdd.avoir_informations_utilisateur(ctx.guild, ctx.author)
             await ctx.send(embed=envoie_embed_rang(expérience, niveau, ctx.author , rang_utilisateurs, self.client))
         else:
             await ctx.send("L'extension **Niveau** n'est pas activé !")        
@@ -114,7 +114,12 @@ class Level(commands.Cog, name="Niveau"):
             
             embed = discord.Embed(title=f"Tableau de bord ({len(podium_utilisateurs)}) :", colour=discord.Colour(0xF5DF4D), description=description)
             embed.set_footer(text=f"Veni, vidi, vici | {self.client.user.name}", icon_url=self.client.user.avatar_url)
-        
+
+
+async def setup_niveau(client: commands.Bot, ctx):
+    guilde = ctx.guild
+    client.modules_db.modifier_status_extension(guilde, "level", True)
+    await ctx.send("L'extension Niveau est bien paramétrée ! :white_check_mark:") 
         
 def setup(client):
     

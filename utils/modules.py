@@ -38,7 +38,7 @@ class ModulesDB:
     def avoir_status_extensions(self, guilde: discord.Guild):
         if not self.__est_dans_la_table__(guilde):
             self.ajoute_guilde(guilde)
-            return {i: 0 for i in self.liste_modules}
+            return {i: False for i in self.liste_modules}
         else:
             curseur = self.database.cursor()
             curseur.execute("SELECT * FROM modules WHERE guild_id = ?", (guilde.id,))
@@ -62,7 +62,23 @@ class ModulesDB:
             résultat = curseur.fetchone()
             curseur.close()
             return bool(résultat[0])
-                
+    
+    def avoir_liste_extensions_activées(self, guilde: discord.Guild) -> list[str]:
+        extensions = self.avoir_status_extensions(guilde)
+        extensions_activées = list()
+        for module, status in extensions.items():
+            if status:
+                extensions_activées.append(module)
+        return extensions_activées
+    
+    def avoir_liste_extensions_désactivées(self, guilde: discord.Guild) -> list[str]:
+        extensions = self.avoir_status_extensions(guilde)
+        extensions_désactivées = list()
+        for module, status in extensions.items():
+            if not status:
+                extensions_désactivées.append(module)
+        return extensions_désactivées
+    
     def modifier_status_extension(self, guilde: discord.Guild, nom_module: str, status: bool):
         if nom_module not in self.liste_modules:
             return None        

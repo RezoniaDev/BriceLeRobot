@@ -69,6 +69,17 @@ class Admin(commands.Cog):
                     status.append(f"{self.raccourci_vers_nom_extensions[nom_extension]} ✅")
         await ctx.send("\n".join(status))
 
+    @commands.command(
+        name="refresh_bdd",
+        hidden=True
+    )
+    async def _refresh_bdd(self, ctx):
+        if ctx.author.id != self.client.id_auteur:
+            return
+        self.client.modules_db.__ajouter_extension__("vérification")
+        print("a")
+        ctx.author.send("L'extension `Vérification` a bien été ajoutée à la base de donnée !")
+
 
 def setup(client):
     client.add_cog(Admin(client))

@@ -32,7 +32,7 @@ class LevelDB:
             curseur.close()
             self.database.commit()           
             
-    def get_user_informations(self, guilde, utilisateur):
+    def avoir_informations_utilisateur(self, guilde, utilisateur):
         self.__create_table__(guilde.id)
         if not self.__est_dans_la_table__(guilde, utilisateur):
             self.ajoute_utilisateur(guilde, utilisateur)

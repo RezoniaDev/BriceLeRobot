@@ -2,8 +2,9 @@ import os
 import logging
 from dotenv import load_dotenv
 import discord_components
-from utils.logs import LogDB
+from utils.logs import HistoriqueDB
 import discord
+from utils.vérification import VérificationDB
 from utils.modules import ModulesDB
 from utils.level import LevelDB
 from utils.prefix import PrefixDB
@@ -38,7 +39,7 @@ client = cmds.Bot(command_prefix=avoir_préfixe_avec_serveur, intents=discord.In
 
 discord_components_manager = DiscordComponents(client)
 
-client.liste_modules = ["level", "log"]
+client.liste_modules = ["level", "log", "vérification"]
 client.dico_nom_modules_jolis = {"level": "Niveau", "log": "Historique"}
 
 
@@ -46,7 +47,8 @@ client.dico_nom_modules_jolis = {"level": "Niveau", "log": "Historique"}
 client.prefix_db = PrefixDB()
 client.modules_db = ModulesDB(client.liste_modules)
 client.level_db = LevelDB()
-client.log_db = LogDB()
+client.log_db = HistoriqueDB(client, client.modules_db)
+client.vérification_bdd = VérificationDB(client.modules_db)
 
 @client.event
 async def on_ready():
