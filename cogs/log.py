@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+from utils.modules import ModulesDB
 from datetime import datetime
 
 from discord.ext import tasks
@@ -14,18 +15,17 @@ def dictionnaire_roles_permissions(liste_roles: list[discord.Role]):
 def renvoie_salon(client, guilde: discord.Guild) -> discord.TextChannel:
     id_salon = client.log_db.get_log_channel(guilde)
     return client.get_channel(id_salon)
+          
+def est_activé(bdd: ModulesDB, guilde: discord.Guild) -> bool:
+    return bdd.avoir_status_extension(guilde, "log")          
     
 class Log(commands.Cog):
     
     def __init__(self, client):
         self.client = client
         self.csv_guild.start()
+        self.setup_bdd = client.modules_db
         
-    @commands.command(
-        name="guilde_test"
-    )    
-    async def __test_guilde(self, ctx):
-        await self.client.get_guild(843237976297439241).delete()
     
     @tasks.loop(minutes=1440.0)
     async def csv_guild(self):
@@ -60,80 +60,85 @@ class Log(commands.Cog):
     
     @commands.Cog.listener()
     async def on_guild_join(self, guilde):
-        if self.client.log_db.__est_dans_la_table(guilde):
-            await self.client.fetch_channel(self.client.log_db.get_log_channel(guilde)).send("Voici le salon où tous les actions passés sur la guilde seront publiés !")
-        else:
-            catégorie = await guilde.create_category_channel(name=self.client.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
-            salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
-            self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
-            await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")
+        if est_activé(self.setup_bdd, guilde):
+            if self.client.log_db.__est_dans_la_table(guilde):
+                await self.client.fetch_channel(self.client.log_db.get_log_channel(guilde)).send("Voici le salon où tous les actions passés sur la guilde seront publiés !")
+            else:
+                catégorie = await guilde.create_category_channel(name=self.client.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
+                salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
+                self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
+                await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")
     
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         guilde = message.guild
-        salon = renvoie_salon(self.client, guilde)
-        if salon is None or salon == -1:
-            catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
-            salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
-            self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
-            await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
-        embed = discord.Embed(title="Suppression de message", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
+        if est_activé(self.setup_bdd, guilde):    
+            salon = renvoie_salon(self.client, guilde)
+            if salon is None or salon == -1:
+                catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
+                salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
+                self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
+                await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
+            embed = discord.Embed(title="Suppression de message", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
 
-        embed.set_author(name=f"{message.author.name}", icon_url=f"{message.author.avatar_url}")
-        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+            embed.set_author(name=f"{message.author.name}", icon_url=f"{message.author.avatar_url}")
+            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
 
-        embed.add_field(name="Contenu du mesasge :", value=f"`{message.content}`")
+            embed.add_field(name="Contenu du mesasge :", value=f"`{message.content}`")
 
-        await salon.send(embed=embed)
+            await salon.send(embed=embed)
     
     @commands.Cog.listener()
     async def on_message_edit(self, message_avant, message_après):
         guilde = message_avant.guild
-        salon = renvoie_salon(self.client, guilde)
-        if salon is None or salon == -1:
-            catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
-            salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
-            self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
-            await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
-        embed = discord.Embed(title="Édition d'un message", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
+        if est_activé(self.setup_bdd, guilde):
+            salon = renvoie_salon(self.client, guilde)
+            if salon is None or salon == -1:
+                catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
+                salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
+                self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
+                await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
+            embed = discord.Embed(title="Édition d'un message", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
 
-        embed.set_author(name=f"{message_avant.author.name}", icon_url=f"{message_avant.author.avatar_url}")
-        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+            embed.set_author(name=f"{message_avant.author.name}", icon_url=f"{message_avant.author.avatar_url}")
+            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
 
-        embed.add_field(name="L'ancien contenu du mesasge :", value=f"`{message_avant.content}`", inline=False)
-        embed.add_field(name="Le nouveau contenu du message :",value=f"`{message_après.content}`", inline=False)
+            embed.add_field(name="L'ancien contenu du mesasge :", value=f"`{message_avant.content}`", inline=False)
+            embed.add_field(name="Le nouveau contenu du message :",value=f"`{message_après.content}`", inline=False)
 
-        await salon.send(embed=embed)
+            await salon.send(embed=embed)
     
     @commands.Cog.listener()
     async def on_member_join(self, membre):
         guilde = membre.guild
-        salon = renvoie_salon(self.client, guilde)
-        if salon is None or salon == -1:
-            catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
-            salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
-            self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
-            await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
-        embed = discord.Embed(title="Un membre a rejoint la guilde !", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
+        if est_activé(self.setup_bdd, guilde):
+            salon = renvoie_salon(self.client, guilde)
+            if salon is None or salon == -1:
+                catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
+                salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
+                self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
+                await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
+            embed = discord.Embed(title="Un membre a rejoint la guilde !", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
 
-        embed.set_author(name=f"{membre.author.name}", icon_url=f"{membre.author.avatar_url}")
-        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
-        await salon.send(embed=embed)
+            embed.set_author(name=f"{membre.author.name}", icon_url=f"{membre.author.avatar_url}")
+            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+            await salon.send(embed=embed)
     
     @commands.Cog.listener()
     async def on_member_remove(self, membre):
         guilde = membre.guild
-        salon = renvoie_salon(self.client, guilde)
-        if salon is None or salon == -1:
-            catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
-            salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
-            self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
-            await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
-        embed = discord.Embed(title="Un membre a quitté la guilde !", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
+        if est_activé(self.setup_bdd, guilde):
+            salon = renvoie_salon(self.client, guilde)
+            if salon is None or salon == -1:
+                catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
+                salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
+                self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
+                await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
+            embed = discord.Embed(title="Un membre a quitté la guilde !", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
 
-        embed.set_author(name=f"{membre.author.name}", icon_url=f"{membre.author.avatar_url}")
-        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
-        await salon.send(embed=embed)
+            embed.set_author(name=f"{membre.author.name}", icon_url=f"{membre.author.avatar_url}")
+            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+            await salon.send(embed=embed)
     
     def __renvoie_embed__(self, membre: discord.Member, salon: discord.VoiceState, a_quitté: bool) -> discord.Embed:
         flèche_droite = "\u27A1\uFE0F"
@@ -148,23 +153,24 @@ class Log(commands.Cog):
     @commands.Cog.listener()
     async def on_voice_state_update(self, membre: discord.Member, status_avant: discord.VoiceState, status_après: discord.VoiceState):
         guilde = membre.guild
-        salon = renvoie_salon(self.client, guilde)
-        if salon is None or salon == -1:
-            catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
-            salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
-            self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
-            await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
-        
-        if (status_après.channel is None):     
-            await salon.send(embed=self.__renvoie_embed__(membre, status_avant, True))
-            return
-        elif(status_avant.channel is None) and (status_après.channel is not None):
-            await salon.send(embed=self.__renvoie_embed__(membre, status_après, False))
-            return
-        elif (status_après.channel.id != status_avant.channel.id):
-            await salon.send(embed=self.__renvoie_embed__(membre, status_avant, True))
-            await salon.send(embed=self.__renvoie_embed__(membre, status_après, False))
-            return
+        if est_activé(self.setup_bdd, guilde):
+            salon = renvoie_salon(self.client, guilde)
+            if salon is None or salon == -1:
+                catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
+                salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
+                self.client.log_db.ajouter_log_channel(guilde, catégorie, salon)
+                await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
+            
+            if (status_après.channel is None):     
+                await salon.send(embed=self.__renvoie_embed__(membre, status_avant, True))
+                return
+            elif(status_avant.channel is None) and (status_après.channel is not None):
+                await salon.send(embed=self.__renvoie_embed__(membre, status_après, False))
+                return
+            elif (status_après.channel.id != status_avant.channel.id):
+                await salon.send(embed=self.__renvoie_embed__(membre, status_avant, True))
+                await salon.send(embed=self.__renvoie_embed__(membre, status_après, False))
+                return
     
 
 def setup(bot):

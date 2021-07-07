@@ -20,26 +20,26 @@ logger.addHandler(handler)
 
 load_dotenv()
 
-token = os.getenv("TOKEN")
+clé_bot = os.getenv("TOKEN")
 
-directory = get_path()
+accès_dossier = get_path()
 
-def load_cogs():
-    for filename in os.listdir(directory+"\\cogs"):
-        if filename.endswith(".py") and not filename.startswith("_"):
-            filename_strip = filename.rsplit(".py")[0].lower()
-            client.load_extension(f"cogs.{filename_strip}")
+def charger_les_extensions():
+    for nom_fichier in os.listdir(accès_dossier + "\\cogs"):
+        if nom_fichier.endswith(".py") and not nom_fichier.startswith("_"):
+            nom_fichier_sans_extension= nom_fichier.rsplit(".py")[0].lower()
+            client.load_extension(f"cogs.{nom_fichier_sans_extension}")
     
-def get_server_prefix(client, message):
-    prefix = client.prefix_db.get_prefix(message.guild) if message.guild is not None else "&"
-    return when_mentioned_or(prefix)(client, message)
+def avoir_préfixe_avec_serveur(client, message):
+    préfixe = client.prefix_db.get_prefix(message.guild) if message.guild is not None else "?"
+    return when_mentioned_or(préfixe)(client, message)
 
-client = cmds.Bot(command_prefix=get_server_prefix, intents=discord.Intents.all())
+client = cmds.Bot(command_prefix=avoir_préfixe_avec_serveur, intents=discord.Intents.all())
 
 discord_components_manager = DiscordComponents(client)
 
 client.liste_modules = ["level", "log"]
-client.dico_nom_modules_jolis = {"level": "Niveaux", "log": "Historique"}
+client.dico_nom_modules_jolis = {"level": "Niveau", "log": "Historique"}
 
 
 
@@ -51,7 +51,7 @@ client.log_db = LogDB()
 @client.event
 async def on_ready():
     print(f"{client.user.name} est prêt !")
-    load_cogs()
+    charger_les_extensions()
     client.id_auteur = os.getenv("OWNER_ID")
     client.auteur = client.get_user(client.id_auteur)
     
@@ -62,7 +62,7 @@ async def on_message(message):
 
     await client.process_commands(message)
 
-client.run(token)
+client.run(clé_bot)
 
 
     
