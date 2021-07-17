@@ -1,0 +1,14 @@
+Nouvelle version, la **1.2**
+
+Cette version a eu droit à une refonte totale de la gestion des extensions et une toute nouvelle commande `&setup`.
+Aussi, on a rajouté le système de vérification (lorsqu'une personne rejoint la guilde, elle doit remplir une captcha pour voir les salons).
+Et aussi un système d'historique, si une personne rejoint un salon vocal, ou modifie un message et etc..., le bot envoyera un message dans un salon spécifique.
+Puis, les anciennes extensions ont été refaites pour fonctionner avec le nouveau système d'extensions.
+
+J'ai retiré l'extension des adresses-IP car je dois la refaire mais elle reviendra dans une sous-version.
+
+Pour la **1.3**, je prépare une extension **Modération** (+ de 12 commandes et etc...).
+Et elle arrivera plus rapidement que la 1.2 (et ouaip, c'est les vacances :wink:)
+
+Bisous :heart: !
+Quentin

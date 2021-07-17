@@ -1,13 +1,11 @@
 from utils.modules import ModulesDB
 import os
 import discord
-from utils.util import a_un_rôle, a_un_salon, get_message
+from utils.util import a_un_rôle, a_un_salon, get_message, est_activé, avoir_préfixe_guilde
 from discord import Permissions
 from discord.ext import commands
 from multicolorcaptcha import CaptchaGenerator
 
-def est_activé(bdd: ModulesDB, guilde: discord.Guild) -> bool:
-    return bdd.avoir_status_extension(guilde, "vérification")
 
 class Vérification(commands.Cog):
     
@@ -18,7 +16,7 @@ class Vérification(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, membre: discord.Member):
-        if est_activé(self.base_de_données.avoir_base_de_données_setup(), membre.guild):
+        if est_activé(self.base_de_données.avoir_base_de_données_setup(), membre.guild, "vérification"):
             guilde = membre.guild
             inforamtions_vérifications_guilde = self.base_de_données.avoir_les_informations(guilde)
             lien_invitation = inforamtions_vérifications_guilde[0]
@@ -36,7 +34,7 @@ class Vérification(commands.Cog):
             
     @commands.Cog.listener() 
     async def on_message(self, message: discord.Message):
-        if est_activé(self.base_de_données.avoir_base_de_données_setup(), message.author.guild):
+        if est_activé(self.base_de_données.avoir_base_de_données_setup(), message.channel.guild, "vérification"):
             
             guilde = message.guild
             auteur = message.author
@@ -93,5 +91,5 @@ async def setup_vérification(client: commands.Bot, ctx):
     await ctx.send("L'extension Vérification est bien paramétrée ! :white_check_mark:")
     
 def setup(client):
-    print("L'extension Vérification est activé !")
+    print("L'extension Vérification est activée !")
     client.add_cog(Vérification(client))

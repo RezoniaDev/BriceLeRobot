@@ -5,8 +5,8 @@ class VérificationDB:
     
     nom_table = "vérification"
     
-    def __init__(self, setup_bdd) -> None:
-        self.base_de_données= sqlite3.connect(".\\données\\vérification.db")
+    def __init__(self, accès_dossier, setup_bdd) -> None:
+        self.base_de_données= sqlite3.connect(accès_dossier + "vérification.db")
         self.setup_bdd = setup_bdd
         self.__créer_la_table__()
     

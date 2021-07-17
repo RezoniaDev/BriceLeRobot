@@ -1,0 +1,16 @@
+Nouvelle version, la **1.1.1**
+
+**Ajout** :
+
+- Des nouvelles commandes : 
+    -`&setup` qui permet de configurer les **quatres modules** (pour l'instant) du bot ! *(`&help setup` pour plus de renseignements !)*
+    -`&changelog` qui permet de lire les changelog *(si vous lisez ça, c'est que vous connaissez déjà la commande :wink:)*
+
+- Un **TOUT** nouveau système d'annonce:
+    Celui-ci permettra de vous envoyer des annonces de la plus haute importance (arrêt du bot pour maintenance, publication d'une nouvelle mise à jour)
+
+Résolution de bugs et etc...
+
+Si vous avez des suggestions pour m'améliorer, envoyez un message privé à mon créateur (son discord est dans le `&stats`, comme mon lien d'invitation !)
+
+Merci pour la lecture :wink:

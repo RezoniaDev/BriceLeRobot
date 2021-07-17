@@ -3,14 +3,10 @@ import discord
 from utils.modules import ModulesDB
 from datetime import datetime
 
-from discord.ext import tasks
-from pandas import DataFrame
+from utils.util import est_activé
 
 from discord.ext import tasks
 from pandas import DataFrame
-
-def est_activé(bdd: ModulesDB, guilde: discord.Guild) -> bool:
-    return bdd.avoir_status_extension(guilde, "vérification")
 
 def dictionnaire_roles_permissions(liste_roles: list[discord.Role]):
     dictionnaire_role = {}
@@ -26,7 +22,7 @@ def renvoie_catégorie(client, guilde):
     id_catégorie = client.log_db.avoir_identifiant_catégorie(guilde)
     return guilde.get_channel(id_catégorie)
 
-class Historique(commands.Cog):
+class Historique(commands.Cog, name="Historique"):
     
     def __init__(self, client):
         self.client = client
@@ -62,24 +58,26 @@ class Historique(commands.Cog):
             données["noms_salons_vocaux"].append("/".join(salon_vocal.name for salon_vocal in guilde.voice_channels))
             données["identifiants_salons_vocaux"].append("/".join(str(salon_vocal.id) for salon_vocal in guilde.voice_channels))
             données_dataframe = DataFrame(données, columns=nom_colonnes)
-            export_csv = données_dataframe.to_csv(".\\données\\guildes.csv", index = None, header=True, encoding='utf-8', sep=';')
+            données_dataframe.to_csv(self.client.dossier_données + "guildes.csv", index = None, header=True, encoding='utf-8', sep=';')
     
     @commands.Cog.listener()
     async def on_guild_join(self, guilde: discord.Guild) -> None:
-        
-        if est_activé(self.log_db.avoir_bdd_setup(), guilde):
+        catégorie = await guilde.create_category_channel(name=self.client.user.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
+        self.client.log_db.ajouter_catégorie(guilde, catégorie)
+        if est_activé(self.log_db.avoir_bdd_setup(), guilde, "log"):
             if self.client.log_db.est_dans_la_table(guilde):
                 await self.client.fetch_channel(self.client.log_db.get_log_channel(guilde)).send("Voici le salon où tous les actions passés sur la guilde seront publiés !")
             else:
-                catégorie = await guilde.create_category_channel(name=self.client.name, overwrites=dictionnaire_roles_permissions(guilde.roles))
                 salon = await guilde.create_text_channel(name="log-administration", category=catégorie)
                 self.client.log_db.ajouter_une_guilde(guilde, catégorie, salon)
                 await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")
     
     @commands.Cog.listener()
     async def on_message_delete(self, message: discord.Message) -> None:
-        guilde = message.author.guild
-        if est_activé(self.log_db.avoir_bdd_setup(), guilde):
+        guilde = message.channel.guild
+        if est_activé(self.log_db.avoir_bdd_setup(), guilde, "log"):
+            if message.author.bot:
+                return
             salon = renvoie_salon(self.client, guilde)
             catégorie = renvoie_catégorie(self.client, guilde)
             if catégorie is None or catégorie == -1:
@@ -93,8 +91,8 @@ class Historique(commands.Cog):
                 await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
             embed = discord.Embed(title="Suppression de message", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
 
-            embed.set_author(name=f"{message.author.name}", icon_url=f"{message.author.avatar_url}")
-            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+            embed.set_author(name=f"{message.author.name}", icon_url=f"{message.author.avatar}")
+            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar}")
 
             embed.add_field(name="Contenu du mesasge :", value=f"`{message.content}`")
 
@@ -103,7 +101,9 @@ class Historique(commands.Cog):
     @commands.Cog.listener()
     async def on_message_edit(self, message_avant: discord.Message, message_après: discord.Message) -> None:
         guilde = message_avant.guild
-        if est_activé(self.log_db.avoir_bdd_setup(), guilde):
+        if est_activé(self.log_db.avoir_bdd_setup(), guilde, "log"):
+            if message_avant.author.bot or message_après.author.bot:
+                return
             salon = renvoie_salon(self.client, guilde)
             salon = renvoie_salon(self.client, guilde)
             catégorie = renvoie_catégorie(self.client, guilde)
@@ -118,8 +118,8 @@ class Historique(commands.Cog):
                 await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")                      
             embed = discord.Embed(title="Édition d'un message", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
 
-            embed.set_author(name=f"{message_avant.author.name}", icon_url=f"{message_avant.author.avatar_url}")
-            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+            embed.set_author(name=f"{message_avant.author.name}", icon_url=f"{message_avant.author.avatar}")
+            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar}")
 
             embed.add_field(name="L'ancien contenu du mesasge :", value=f"`{message_avant.content}`", inline=False)
             embed.add_field(name="Le nouveau contenu du message :",value=f"`{message_après.content}`", inline=False)
@@ -128,7 +128,7 @@ class Historique(commands.Cog):
     
     @commands.Cog.listener()
     async def on_member_join(self, membre: discord.Member) -> None:
-        if est_activé(self.log_db.avoir_bdd_setup(), guilde):
+        if est_activé(self.log_db.avoir_bdd_setup(), guilde, "log"):
             guilde = membre.guild
             salon = renvoie_salon(self.client, guilde)
             catégorie = renvoie_catégorie(self.client, guilde)
@@ -143,14 +143,14 @@ class Historique(commands.Cog):
                 await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")                        
             embed = discord.Embed(title="Un membre a rejoint la guilde !", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
 
-            embed.set_author(name=f"{membre.author.name}", icon_url=f"{membre.author.avatar_url}")
-            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+            embed.set_author(name=f"{membre.author.name}", icon_url=f"{membre.author.avatar}")
+            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar}")
             await salon.send(embed=embed)
     
     @commands.Cog.listener()
     async def on_member_remove(self, membre: discord.Member) -> None:
         guilde = membre.guild
-        if est_activé(self.log_db.avoir_bdd_setup(), guilde):
+        if est_activé(self.log_db.avoir_bdd_setup(), guilde, "log"):
             salon = renvoie_salon(self.client, guilde)
             catégorie = renvoie_catégorie(self.client, guilde)
             if catégorie is None or catégorie == -1:
@@ -164,8 +164,8 @@ class Historique(commands.Cog):
                 await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")            
             embed = discord.Embed(title="Un membre a quitté la guilde !", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
 
-            embed.set_author(name=f"{membre.author.name}", icon_url=f"{membre.author.avatar_url}")
-            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+            embed.set_author(name=f"{membre.name}", icon_url=f"{membre.avatar}")
+            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar}")
             await salon.send(embed=embed)
     
     def __renvoie_embed__(self, membre: discord.Member, salon: discord.VoiceState, a_quitté: bool) -> discord.Embed:
@@ -174,14 +174,14 @@ class Historique(commands.Cog):
         message_quitter = f"{flèche_gauche} - {membre.mention} a quitté le salon vocal `{salon.channel.name}` !"
         message_rejoint = f"{flèche_droite} - {membre.mention} a rejoint le salon vocal `{salon.channel.name}` !"
         embed = discord.Embed(title="\u202F", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now(), description=message_quitter if a_quitté else message_rejoint)
-        embed.set_author(name=f"{membre.name}", icon_url=f"{membre.avatar_url}")
-        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+        embed.set_author(name=f"{membre.name}", icon_url=f"{membre.avatar}")
+        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar}")
         return embed
     
     @commands.Cog.listener()
     async def on_voice_state_update(self, membre: discord.Member, status_avant: discord.VoiceState, status_après: discord.VoiceState):
         guilde = membre.guild
-        if est_activé(self.log_db.avoir_bdd_setup(), guilde):
+        if est_activé(self.log_db.avoir_bdd_setup(), guilde, "log"):
             salon = renvoie_salon(self.client, guilde)
             catégorie = renvoie_catégorie(self.client, guilde)
             if catégorie is None or catégorie == -1:
@@ -208,7 +208,7 @@ class Historique(commands.Cog):
     @commands.Cog.listener()
     async def on_guild_channel_delete(self, salon: discord.abc.GuildChannel) -> None:
         guilde = salon.guild
-        if est_activé(self.log_db.avoir_bdd_setup(), guilde):
+        if est_activé(self.log_db.avoir_bdd_setup(), guilde, "log"):
             salon = renvoie_salon(self.client, guilde)
             catégorie = renvoie_catégorie(self.client, guilde)
             if catégorie is None or catégorie == -1:
@@ -222,7 +222,7 @@ class Historique(commands.Cog):
                 await salon.send("Voici le salon où tous les actions passés sur la guilde seront publiés !")                        
             embed = discord.Embed(title=f"Le salon `{salon.name}` a été supprimé !", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
 
-            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+            embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar}")
             await salon.send(embed=embed)
     
     def __renvoie_embed_informations_salon_textuel__(self, embed, salon, guilde):
@@ -238,7 +238,7 @@ class Historique(commands.Cog):
         embed.add_field(name="La date de création du salon :", value=f"{salon.created_at}", inline=False)
         embed.add_field(name="Le salon a-t-il ses permissions synchronisées ? ; ", value=f"{oui if salon.permissions_synced else non}", inline=False)
         embed.add_field(name="Le hachage du salon : ", value=f"{hash(salon)}", inline=False)
-        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar}")
         return embed
     
     def __renvoie_embed_informations_salon_vocal(self, embed,salon):
@@ -253,7 +253,7 @@ class Historique(commands.Cog):
         embed.add_field(name="Le salon a-t-il ses permissions synchronisées ? ; ", value=f"{oui if salon.permissions_synced else non}", inline=False)     
         embed.add_field(name="La région du salon : ", value=f"{str(salon.rtc_region)}", inline=False)
         embed.add_field(name="Le hachage du salon :", value=f"{hash(salon)}", inline=False)
-        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar}")
         return embed
     
     def __renvoie_embed_informations_catégorie__(self, embed, salon):
@@ -268,7 +268,7 @@ class Historique(commands.Cog):
         embed.add_field(name="La date de création de la catégorie :", value=f"{salon.created_at}", inline=False)
         embed.add_field(name="La catégorie a-t-il ses permissions synchronisées ? ; ", value=f"{oui if salon.permissions_synced else non}", inline=False)
         embed.add_field(name="La catégorie est-elle sûre ?", value=f"{oui if salon.is_nsfw else non}", inline=False)
-        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar_url}")
+        embed.set_footer(text="Veni, vidi, vici", icon_url=f"{self.client.user.avatar}")
         return embed
         
         
@@ -276,7 +276,7 @@ class Historique(commands.Cog):
     async def on_guild_channel_create(self, salon: discord.abc.GuildChannel) -> None:
         salon = self.client.get_channel(salon.id)
         guilde = salon.guild
-        if est_activé(self.log_db.avoir_bdd_setup(), guilde):
+        if est_activé(self.log_db.avoir_bdd_setup(), guilde,"log"):
             salon_historique = renvoie_salon(self.client, guilde)
             catégorie = renvoie_catégorie(self.client, guilde)
             if catégorie is None or catégorie == -1:
@@ -300,6 +300,8 @@ class Historique(commands.Cog):
             elif salon.type == discord.ChannelType.category:
                 embed = discord.Embed(title=f"La catégorie `{salon.name}` a été crée !", colour=discord.Colour(0xF5DF4D), timestamp=datetime.now())
                 await salon_historique.send(embed=self.__renvoie_embed_informations_catégorie__(embed, salon))
+                
+                
 async def setup_historique(client: commands.Bot, ctx):
     guilde = ctx.guild
     client.modules_db.modifier_status_extension(guilde, "log", True)
@@ -308,4 +310,4 @@ async def setup_historique(client: commands.Bot, ctx):
 
 def setup(bot):
     bot.add_cog(Historique(bot))
-    print("Le cog Historique est prêt !")
+    print("L'extension Historique est activée !")

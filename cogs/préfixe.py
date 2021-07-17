@@ -7,22 +7,21 @@ class Prefix(commands.Cog, name="Préfixe"):
     def __init__(self, client):
         self.client = client
         self.prefix = client.prefix_db       
-    
-    @commands.command(
-        name="test"
-    )
-    async def _test(self, ctx):
-        self.client.modules_db.__add_module__("log")
-        await ctx.send("TEST OK !")
             
     @commands.command(
-        name="prefix"
+        name="prefix",
+        hidden=False,
+        description="Permet d'afficher le préfixe du bot.",
+        usage="prefix"
     )
     async def _prefix(self, ctx):
         await ctx.send(f"Le préfixe de la guilde est : `{self.prefix.get_prefix(ctx.guild)}`")
 
     @commands.command(
-        name="change_prefix"
+        name="change_prefix",
+        hidden=False,
+        description="Permet de changer le préfixe du bot.",
+        usage="change_prefix [nouveau_préfixe]"
     )
     @has_permissions(administrator=True)
     async def _change_prefix(self, ctx, *args):
@@ -44,4 +43,4 @@ class Prefix(commands.Cog, name="Préfixe"):
 
 def setup(client):
     client.add_cog(Prefix(client))
-    print("Le cog Préfixe est prêt !")
+    print("L'extension Préfixe est activée !")

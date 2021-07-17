@@ -3,14 +3,14 @@ import discord
 
 class ModulesDB:
     
-    def __init__(self, liste_modules: list[str]):
-        self.database = sqlite3.connect(".\données\modules.db")
+    def __init__(self, accès_dossier, liste_modules: list[str]):
+        self.database = sqlite3.connect(accès_dossier + "modules.db")
         self.__créer_la_table__()
         self.liste_modules = liste_modules
         
     def __créer_la_table__(self):
         curseur = self.database.cursor()
-        curseur.execute("CREATE TABLE IF NOT EXISTS modules (guild_id BIGINT  NOT NULL, level TINYINT NOT NULL DEFAULT 0, log TINYINT NOT NULL DEFAULT 0, PRIMARY KEY (guild_id));")
+        curseur.execute("CREATE TABLE IF NOT EXISTS modules (guild_id BIGINT  NOT NULL, level TINYINT NOT NULL DEFAULT 0, log TINYINT NOT NULL DEFAULT 0, spoil TINYINT NOT NULL DEFAULT 0, PRIMARY KEY (guild_id));")
         curseur.close()
         self.database.commit()
         
@@ -92,6 +92,6 @@ class ModulesDB:
             
     def supprimer_extension(self, guilde: discord.Guild):
         curseur = self.database.cursor()
-        curseur.execute("DELETE FROM modules WHERE guild_id = ?", (guilde.id))
+        curseur.execute("DELETE FROM modules WHERE guild_id = ?", (guilde.id, ))
         curseur.close()
         self.database.commit()

@@ -2,8 +2,8 @@ import sqlite3
 
 class PrefixDB:
     
-    def __init__(self):
-        self.database = sqlite3.connect(".\données\prefix.db")
+    def __init__(self, accès_dossier):
+        self.database = sqlite3.connect(accès_dossier + "prefix.db")
         self.__create_table__()
         
     def __create_table__(self):
