@@ -55,7 +55,7 @@ class Quiz(commands.Cog, name="Quiz"):
 
             reponses[i] = reponse
 
-        a_embed = discord.Embed(name="Contenu du Quiz", color=get_color())
+        a_embed = discord.Embed(title="Contenu du Quiz", color=get_color())
 
         str_réponses = ""
         for i in range(nombre_réponses):
