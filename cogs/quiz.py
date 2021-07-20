@@ -69,12 +69,9 @@ class Quiz(commands.Cog, name="Quiz"):
             a_embed.add_field(name=f"Question: `{question_list[key][0]}`", value=f"{value}", inline=False)
         n = await ctx.send("Tout est valide ?", embed=a_embed)
 
-        await n.add_reaction("✅")
-        await n.add_reaction("❌")
-        # await n.add_reaction(get_emoji(self.client, "yes"))
-        # await n.add_reaction(get_emoji(self.client, "no"))
-        # liste_emojis = [get_emoji(self.client, "yes"), get_emoji(self.client, "no")]
-        liste_emojis = ["✅", "❌"]
+        await n.add_reaction(get_emoji(self.client, "yes"))
+        await n.add_reaction(get_emoji(self.client, "no"))
+        liste_emojis = [get_emoji(self.client, "yes"), get_emoji(self.client, "no")]
         try:
             reaction, member = await self.client.wait_for(
                 "reaction_add",
