@@ -65,24 +65,6 @@ class Amusement(commands.Cog):
         # Envoi de l'embed
         await ctx.send(embed=embeds)
 
-    @est_le_propriétaire()
-    @commands.command(
-        name="hypixel"
-    )
-    async def hypixel(self, ctx, pseudo):
-        if pseudo is None:
-            await ctx.send("Vous devez marquer un pseudo !")
-            return
-        données = requests.get(
-            url="https://api.hypixel.net/player",
-            params= {
-                "key": "0d9663f7-55c2-4be8-9ff2-18081209fe0c",
-                "name": pseudo
-            }
-        ).json()
-        a = open("a.txt","w", encoding="utf-8")
-        a.write(str(données))
-        a.close()
 
     @commands.command(
         name="channel-stats",
