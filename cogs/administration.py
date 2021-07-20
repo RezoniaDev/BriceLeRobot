@@ -144,13 +144,13 @@ class Administration(commands.Cog, name="Administration"):
 
 
     async def create_annonces(self, guild):
-        member_bot_name = [m.name for m in guild.members if m.bot]
-        adminstrator_roles = [r for r in guild.roles if r.permissions.administrator and r.name not in member_bot_name]
-        adminstrator_roles.append(guild.me)
-        overwrites = {k:discord.PermissionOverwrite(read_messages=True, send_messages=True) for k in adminstrator_roles}
-        overwrites[guild.default_role] = discord.PermissionOverwrite(read_messages=False)
+        noms_bots_guilde = {membre.name for membre in guild.members if membre.bot}
+        rôles_administrateurs = [rôle for rôle in guild.roles if rôle.permissions.administrator and rôle.name not in noms_bots_guilde]
+        rôles_administrateurs.append(guild.me)
+        permissions = {rôle: discord.PermissionOverwrite(read_messages=True, send_messages=True) for rôle in rôles_administrateurs}
+        permissions[guild.default_role] = discord.PermissionOverwrite(read_messages=False)
         catégorie = guild.get_channel(self.client.log_db.avoir_identifiant_catégorie(guild))
-        annonces_channel = await guild.create_text_channel(f"annonces-{guild.me.name}",category=catégorie,overwrites=overwrites)
+        annonces_channel = await guild.create_text_channel(f"annonces-{guild.me.name}",category=catégorie,overwrites=permissions)
         self.client.annonces_bdd.insert_element(guild.id, annonces_channel.id)
         return annonces_channel.id
     

@@ -5,6 +5,7 @@ from utils.spoil import SpoilDB
 from dotenv import load_dotenv
 from utils.logs import HistoriqueDB
 import discord
+from utils.erreur import Erreur, ErreurBDD
 from utils.util import get_path
 from discord.ext import commands
 from utils.vérification import VérificationDB
@@ -76,6 +77,8 @@ client.log_db = HistoriqueDB(dossier_bases_de_données, client, client.modules_d
 client.vérification_bdd = VérificationDB(dossier_bases_de_données, client.modules_db)
 client.spoil_bdd = SpoilDB(dossier_bases_de_données, client)
 client.annonces_bdd = AnnoncesDB(dossier_bases_de_données)
+client.errors_class = ErreurBDD(client)
+
 
 @client.event
 async def on_ready():
