@@ -100,7 +100,7 @@ class Quiz(commands.Cog, name="Quiz"):
         giveaway_embed.add_field(name="Réponses possibles : ", value=str_réponses, inline=False)
         giveaway_embed.set_footer(
             text=f"Veni, vidi, vici | {self.client.user.name}",
-            icon_url=self.client.user.avatar_url)
+            icon_url=self.client.user.avatar)
 
         await channel.send(answers[1])
         giveaway_message = await channel.send(embed=giveaway_embed)

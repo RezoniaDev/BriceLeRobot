@@ -42,7 +42,7 @@ class Administration(commands.Cog, name="Administration"):
         embed = discord.Embed(title="Noms des extensions", color=discord.Colour(0xF5DF4D))
         for nom_extension, extension in extensions.items():
             embed.add_field(name="Nom de l'extension : ", value=f"{nom_extension}" , inline=True)
-        embed.set_footer(text=f"Veni, vidi, vici | {self.client.user.name}", icon_url=self.client.user.avatar_url)
+        embed.set_footer(text=f"Veni, vidi, vici | {self.client.user.name}", icon_url=self.client.user.avatar)
         await ctx.send(embed=embed)
 
     def __get_cogs_list__(self) -> list[str]:
